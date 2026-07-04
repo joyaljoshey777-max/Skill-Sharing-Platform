@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Provider Application | SkillConnect{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-5">
+    <div class="col-md-9 col-lg-8">
+        <div class="card p-4 p-md-5 border-0 shadow-sm border-top border-primary border-4 my-4">
+            <div class="text-center mb-5">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <h2 class="fw-bold fs-3 text-dark">Join as a Professional</h2>
+                <p class="text-muted">Create your profile, showcase your skills, and connect with clients instantly.</p>
+            </div>
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger border-0">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="row g-4 mb-4">
+                    {% for field in form %}
+                        <div class="col-md-{% if field.name == 'experience' or field.name == 'skills' or field.name == 'contact_details' %}12{% else %}6{% endif %}">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-medium text-dark small">{{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                            
+                            {% if field.errors %}
+                                <div class="text-danger small mb-1 fw-medium">{{ field.errors.0 }}</div>
+                            {% endif %}
+                            
+                            <div class="bg-light rounded-2 {% if field.name == 'profile_photo' or field.name == 'id_proof' %}p-1 border{% endif %}">
+                                {% if field.name == 'profile_photo' or field.name == 'id_proof' %}
+                                    <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control border-0 bg-transparent" {% if field.field.required %}required{% endif %}>
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+                            </div>
+                            
+                            {% if field.help_text %}
+                                <div class="form-text small mt-1 text-muted"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="alert alert-primary bg-primary bg-opacity-10 border-0 text-primary d-flex align-items-center gap-3 pe-4 mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                    <div class="small fw-medium">Your application will be manually reviewed. Once approved by an administrator, your profile will be publicly visible and ready to accept bookings.</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-lg custom-btn shadow-sm fw-bold">Submit Application</button>
+            </form>
+            
+            <div class="text-center mt-4 pt-3 border-top">
+                <p class="text-muted small mb-0">Already registered? <a href="{% url 'login' %}" class="text-decoration-none text-primary fw-medium ms-1">Log in here</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

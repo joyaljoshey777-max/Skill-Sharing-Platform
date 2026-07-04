@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}Provider Dashboard | SkillConnect{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 mt-2 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1">Provider Dashboard</h2>
+        <p class="text-muted mb-0">Manage your incoming requests, bookings, and profile status.</p>
+    </div>
+    <div>
+        {% if profile.status == 'Pending' %}
+            <div class="badge bg-warning bg-opacity-10 border border-warning text-warning fs-6 py-2 px-3 rounded-pill fw-medium d-flex align-items-center gap-2">
+                <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true" style="width: 0.5rem; height: 0.5rem;"></span> Profile Pending Approval
+            </div>
+        {% elif profile.status == 'Approved' %}
+            <div class="badge bg-success bg-opacity-10 border border-success text-success fs-6 py-2 px-3 rounded-pill fw-medium d-flex align-items-center gap-2">
+                <span class="bg-success rounded-circle" style="width: 8px; height: 8px;"></span> Profile Active
+            </div>
+        {% elif profile.status == 'Rejected' %}
+            <div class="d-flex flex-column align-items-md-end">
+                <div class="badge bg-danger bg-opacity-10 border border-danger text-danger fs-6 py-2 px-3 rounded-pill fw-medium d-flex align-items-center gap-2 mb-2">
+                    <span class="bg-danger rounded-circle" style="width: 8px; height: 8px;"></span> Profile Rejected
+                </div>
+                {% if profile.rejection_reason %}
+                <div class="alert alert-danger p-2 small mb-0 rounded-3 shadow-sm border-danger" style="max-width: 300px;">
+                    <strong>Reason for rejection:</strong> {{ profile.rejection_reason }}
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if profile.status == 'Approved' %}
+<div class="row g-4 mb-5">
+    <!-- Pending Requests -->
+    <div class="col-lg-6">
+        <div class="card p-4 p-md-5 h-100 border-0 shadow-sm">
+            <h4 class="fw-bold mb-4 d-flex align-items-center justify-content-between">
+                <span class="d-flex align-items-center gap-2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-warning"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    Pending Requests
+                </span>
+                <span class="badge bg-warning bg-opacity-10 text-warning px-3 rounded-pill">{{ pending.count }}</span>
+            </h4>
+            
+            {% if pending %}
+                <div class="d-flex flex-column gap-3">
+                {% for booking in pending %}
+                    <div class="p-4 border rounded-3 bg-white position-relative overflow-hidden" style="border-left: 4px solid #F59E0B !important;">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">{% if booking.user.first_name %}{{ booking.user.first_name }} {{ booking.user.last_name }}{% else %}{{ booking.user.username }}{% endif %}</h6>
+                                <span class="badge bg-light text-dark border">{{ booking.skill.name }}</span>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-dark">{{ booking.date|date:"M j" }}</div>
+                                <div class="text-muted small">{{ booking.time|time:"h:i A" }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if booking.message %}
+                            <div class="small text-muted mb-3 p-3 bg-light rounded-2 font-monospace border">
+                                "{{ booking.message }}"
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-flex gap-2 mt-3">
+                            <a href="{% url 'manage_booking' booking.id 'accept' %}" class="btn btn-sm btn-primary flex-grow-1 shadow-sm rounded-pill fw-medium py-2">Accept</a>
+                            <button class="btn btn-sm btn-outline-danger flex-grow-1 rounded-pill fw-medium py-2" type="button" data-bs-toggle="collapse" data-bs-target="#declineForm{{ booking.id }}" aria-expanded="false" aria-controls="declineForm{{ booking.id }}">
+                                Decline
+                            </button>
+                        </div>
+                        <div class="collapse mt-3" id="declineForm{{ booking.id }}">
+                            <div class="card card-body bg-light border-0 p-3 rounded-3">
+                                <form action="{% url 'manage_booking' booking.id 'reject' %}" method="post">
+                                    {% csrf_token %}
+                                    <div class="mb-2">
+                                        <label for="reason{{ booking.id }}" class="form-label small fw-medium text-dark mb-1">Reason for declining:</label>
+                                        <textarea class="form-control" id="reason{{ booking.id }}" name="rejection_reason" rows="2" style="font-size: 0.875rem;" required placeholder="Let the client know why..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-danger btn-sm w-100 rounded-pill fw-medium shadow-sm py-2">Confirm Decline</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 d-flex flex-column align-items-center justify-content-center h-100">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted opacity-25 mb-3"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <p class="text-muted fw-medium mb-0">No pending requests right now.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Upcoming Bookings -->
+    <div class="col-lg-6">
+        <div class="card p-4 p-md-5 h-100 border-0 shadow-sm">
+            <h4 class="fw-bold mb-4 d-flex align-items-center justify-content-between">
+                <span class="d-flex align-items-center gap-2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Upcoming Bookings
+                </span>
+                <span class="badge bg-success bg-opacity-10 text-success px-3 rounded-pill">{{ upcoming.count }}</span>
+            </h4>
+            
+            {% if upcoming %}
+                <div class="d-flex flex-column gap-3">
+                {% for booking in upcoming %}
+                    <div class="p-4 border rounded-3 bg-white position-relative overflow-hidden" style="border-left: 4px solid #10B981 !important;">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">{% if booking.user.first_name %}{{ booking.user.first_name }} {{ booking.user.last_name }}{% else %}{{ booking.user.username }}{% endif %}</h6>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark border">{{ booking.skill.name }}</span>
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 rounded-pill fw-medium"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="me-1"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Locked</span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-dark">{{ booking.date|date:"M j, Y" }}</div>
+                                <div class="text-muted small">{{ booking.time|time:"h:i A" }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-2 mb-3 bg-light p-2 rounded-2 border small">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted flex-shrink-0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            <span class="text-dark fw-medium">{{ booking.user.email }}</span>
+                        </div>
+                        
+                        <a href="{% url 'manage_booking' booking.id 'complete' %}" class="btn btn-outline-primary btn-sm w-100 rounded-pill py-2 fw-medium border-2">Mark as Completed</a>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 d-flex flex-column align-items-center justify-content-center h-100">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted opacity-25 mb-3"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <p class="text-muted fw-medium mb-0">No upcoming confirmed bookings.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <!-- Completed Bookings -->
+    <div class="col-12">
+        <div class="card p-4 p-md-5 border-0 shadow-sm">
+            <h4 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Service History
+            </h4>
+            
+            {% if completed %}
+                <div class="table-responsive">
+                    <table class="table align-middle border-top pb-0 mb-0">
+                        <thead class="bg-light text-muted small text-uppercase" style="letter-spacing: 0.05em;">
+                            <tr>
+                                <th class="ps-3 py-3 fw-medium">Client</th>
+                                <th class="py-3 fw-medium">Date Completed</th>
+                                <th class="py-3 fw-medium">Skill Provided</th>
+                                <th class="py-3 pe-3 text-end fw-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                            {% for booking in completed %}
+                                <tr>
+                                    <td class="ps-3 py-4 fw-bold text-dark">
+                                        {% if booking.user.first_name %}{{ booking.user.first_name }} {{ booking.user.last_name }}{% else %}{{ booking.user.username }}{% endif %}
+                                    </td>
+                                    <td class="py-4 text-muted">{{ booking.date|date:"F j, Y" }}</td>
+                                    <td class="py-4"><span class="badge bg-light text-dark border">{{ booking.skill.name }}</span></td>
+                                    <td class="py-4 pe-3 text-end">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill fw-medium shadow-none">Completed</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <p class="text-muted fw-medium mb-0">No completed services yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% else %}
+    <div class="card border-warning border-start border-4 border-0 shadow-sm p-5 text-center mt-5 mx-auto" style="max-width: 600px;">
+        <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+        <h3 class="fw-bold text-dark mb-3">Pending Verification</h3>
+        <p class="text-muted fs-5 mb-0">Your provider profile is currently undergoing administrator review. You will be able to manage incoming bookings and your schedule as soon as your account is approved.</p>
+    </div>
+{% endif %}
+{% endblock %}

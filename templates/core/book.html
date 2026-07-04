@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Book {{ provider.user.first_name }} | SkillConnect{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center mb-5" style="min-height: 70vh;">
+    <div class="col-md-8 col-lg-6">
+        <div class="card p-4 p-md-5 border-0 shadow-sm border-top border-primary border-4 my-4">
+            <div class="text-center mb-4">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                    style="width: 64px; height: 64px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <h3 class="fw-bold text-dark">Book {{ provider.user.first_name }}</h3>
+                <p class="text-muted mb-0">Select a skill and a time slot to hire this professional.</p>
+            </div>
+
+            <div
+                class="alert bg-light border text-center py-3 mb-4 rounded-3 d-flex align-items-center justify-content-center gap-2">
+
+                <span class="text-dark fw-medium">Price:</span> <span class="fw-bold text-success fs-5">₹{{ provider.price_per_service }}</span> <span class="text-muted small">per service</span>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="skill" class="form-label fw-medium text-dark small mb-1">Select Skill <span
+                            class="text-danger">*</span></label>
+                    <select name="skill" id="skill" class="form-select bg-light" required>
+                        <option value="" disabled selected>-- Choose a skill --</option>
+                        {% for skill in provider.skills.all %}
+                        <option value="{{ skill.id }}">{{ skill.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="date" class="form-label fw-medium text-dark small mb-1">Date <span
+                                class="text-danger">*</span></label>
+                        <input type="date" name="date" id="date" class="form-control bg-light" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="time" class="form-label fw-medium text-dark small mb-1">Time <span
+                                class="text-danger">*</span></label>
+                        <input type="time" name="time" id="time" class="form-control bg-light" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="message" class="form-label fw-medium text-dark small mb-1">Message (Optional)</label>
+                    <textarea name="message" id="message" rows="3" class="form-control bg-light"
+                        placeholder="Describe what you need help with..."></textarea>
+                </div>
+
+                <div class="d-flex flex-column gap-2 mt-2">
+                    <button type="submit" class="btn btn-primary btn-lg custom-btn shadow-sm fw-bold">Send Booking
+                        Request</button>
+                    <a href="{% url 'provider_profile' provider.id %}" class="btn btn-light fw-medium border">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Ensure you can only book dates in the future
+    document.addEventListener('DOMContentLoaded', function () {
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementById("date").setAttribute('min', today);
+    });
+</script>
+{% endblock %}
