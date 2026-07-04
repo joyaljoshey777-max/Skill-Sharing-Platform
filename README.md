@@ -87,19 +87,19 @@ Skill-Sharing-Platform
 
 ### 🏠 Home Page
 
-> Add screenshot here
+<img src="screenshots/home.png" width="900">
 
 ### 🔐 Login
 
-> Add screenshot here
+<img src="screenshots/login.png" width="900">
 
 ### 👤 Provider Dashboard
 
-> Add screenshot here
+<img src="screenshots/provider.png" width="900">
 
 ### 👨‍💼 Admin Panel
 
-> Add screenshot here
+<img src="screenshots/admin.png" width="900">
 
 ---
 
